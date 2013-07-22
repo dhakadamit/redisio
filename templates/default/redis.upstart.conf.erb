@@ -15,5 +15,13 @@ end script
 respawn
 respawn limit 10 5
 
-exec start-stop-daemon --start --make-pidfile --pidfile /var/run/redis/<%= @name %>/redis_<%= @name %>.pid --chuid <%= @user %> --exec /usr/local/bin/redis-server <%= @configdir %>/<%= @name %>.conf
+exec su -s /bin/sh -c 'exec "$0" "$@"' <%= @user %> /usr/local/bin/redis-server <%= @configdir %>/<%= @name %>.conf
 
+post-start script
+    PID=`status redis<%= @name %> | egrep -oi '([0-9]+)$' | head -n1`
+    echo $PID > <%= @piddir %>/redis_<%= @name %>.pid
+end script
+
+post-stop script
+    rm -f <%= @piddir %>/redis_<%= @name %>.pid
+end script
